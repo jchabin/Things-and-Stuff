@@ -8,7 +8,7 @@ var config = {
 };
 firebase.initializeApp(config);
 
-const SPEED = 0.01;
+const SPEED = 0.02;
 
 var code;
 var database;
@@ -170,7 +170,7 @@ function left(){
 							var lastTime = window.performance.now();
 							function updateGame(e){
 								if(overlap(b, paddle) && bd < 0){
-									bd = -bd  + 10 * (my - by);
+									bd = 90 + Math.random() * 60 - 30;
 									database.ref(code + "/p1/d").set(bd);
 									bx = 3;
 								}
@@ -195,11 +195,17 @@ function left(){
 									if(bd < -180)
 										bd += 360;
 									if(by < 0.5 && (bd > 90 || bd < -90) && bx < width + 0.5){
+										by = 0.5;
 										bd = 90 + (90 - bd);
 										database.ref(code + "/p1/d").set(bd);
 									}
 									if(by + 0.5 > sizes.p1.height){
+										by = sizes.p1.height - 0.5;
 										bd = 90 + (90 - bd);
+										database.ref(code + "/p1/d").set(bd);
+									}
+									if(bx > sizes.p1.width - 0.5 && (by < 0.5 + (sizes.p1.offset - sizes.p2.offset) || by > sizes.p2.height + sizes.p1.offset - sizes.p2.offset - 0.5) && bd > 0){
+										bd *= -1;
 										database.ref(code + "/p1/d").set(bd);
 									}
 								}
@@ -338,7 +344,7 @@ function right(){
 						var lastTime = window.performance.now();
 						function updateGame(e){
 							if(overlap(b, paddle) && bd > 0){
-								bd = -bd - 10 * (my - by);
+								bd = -90 + Math.random() * 60 - 30;
 								database.ref(code + "/p1/d").set(bd);
 								bx = sizes.p1.width + sizes.p1.width - 3;
 							}
@@ -364,6 +370,10 @@ function right(){
 								}
 								if(by + 0.5 > sizes.p2.height + (sizes.p1.offset - sizes.p2.offset)){
 									bd = 90 + (90 - bd);
+									database.ref(code + "/p1/d").set(bd);
+								}
+								if(bx < sizes.p1.width + 0.5 && (by < 0.5 + (sizes.p1.offset - sizes.p2.offset) || by > sizes.p2.height + sizes.p1.offset - sizes.p2.offset - 0.5) && bd < 0){
+									bd *= -1;
 									database.ref(code + "/p1/d").set(bd);
 								}
 							}
