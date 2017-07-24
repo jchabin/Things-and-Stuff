@@ -143,7 +143,7 @@ function left(){
 							var b = document.getElementById("ball");
 							database.ref(code + "/p1").on("value", function(e){
 								e = e.val();
-								if(bx >= sizes.p1.width){
+								if(e.x >= sizes.p1.width){
 									bx = e.x;
 									by = e.y;
 									bd = e.d;
@@ -320,7 +320,7 @@ function right(){
 						var b = document.getElementById("ball");
 						database.ref(code + "/p1").on("value", function(e){
 							e = e.val();
-							if(bx <= sizes.p1.width){
+							if(e.x <= sizes.p1.width){
 								bx = e.x;
 								by = e.y;
 								bd = e.d;
