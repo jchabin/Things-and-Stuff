@@ -7,13 +7,16 @@ var config = {
 	messagingSenderId: "813057726714"
 };
 firebase.initializeApp(config);
+
+const SPEED = 0.01;
+
 var code;
 var database;
 var offset = 0;
 var cm;
 var width;
 var height;
-var bx, by, bd;
+var bx = 0, by = 0, bd = 0;
 var sizes;
 window.onload = function(){
 	var mobile = navigator.userAgent.match("Mobile")!=null||navigator.userAgent.match("Linux;")!=null;
@@ -138,17 +141,23 @@ function left(){
 						if(e == 4){
 							bd = -90;
 							var b = document.getElementById("ball");
-							/* database.ref(code + "/p1").on("value", function(e){
+							database.ref(code + "/p1").on("value", function(e){
 								e = e.val();
-								bx = e.x;
-								by = e.y;
-							}); */
+								if(bx >= sizes.p1.width){
+									bx = e.x;
+									by = e.y;
+								}
+							});
+							database.ref(code + "/p1/score").on("value", function(e){
+								e = e.val();
+								document.getElementById("score").innerHTML = e;
+							});
 							database.ref(code + "/p1/d").on("value", function(e){
 								e = e.val();
 								bd = e;
 							});
 							var paddle = document.getElementById("gpaddle");
-							var my;
+							var my = 0;
 							window.onmousemove = function(e){
 								paddle.style.top = 100 * e.clientY / document.body.clientHeight + "vh";
 								my = e.clientY / cm;
@@ -157,31 +166,51 @@ function left(){
 							by = height / 2;
 							database.ref(code + "/p1/x").set(width / 2);
 							database.ref(code + "/p1/y").set(height / 2);
-							function updateGame(){
-								if(bd > 180)
-									bd -= 360;
-								if(bd < -180)
-									bd += 360;
-								bx += 0.2 * Math.sin(bd / 180 * Math.PI);
-								by += 0.2 * Math.cos(bd / 180 * Math.PI);
-								if(bx < 0.5)
-									database.ref(code + "/p1/d").set(-bd);
+							var again = false;
+							var lastTime = window.performance.now();
+							function updateGame(e){
 								if(overlap(b, paddle) && bd < 0){
 									bd = -bd  + 10 * (my - by);
 									database.ref(code + "/p1/d").set(bd);
-
-									bx = 2;
+									bx = 3;
 								}
-								if(by < 0.5 && (bd > 90 || bd < -90) && bx < width + 0.5)
-									database.ref(code + "/p1/d").set(90 + (90 - bd));
-								if(by < (sizes.p1.offset - sizes.p2.offset) + 0.5 && (bd > 90 || bd < -90) && bx > width - 0.5)
-									database.ref(code + "/p1/d").set(90 + (90 - bd));
-								if(by + 0.5 > sizes.p1.height)
-									database.ref(code + "/p1/d").set(90 + (90 - bd));
+								if(bx < 0.5){
+									bd *= -1;
+									database.ref(code + "/p1/d").set(bd);
+									database.ref(code + "/p2/score").once("value", function(e){
+										database.ref(code + "/p2/score").set(e.val() + 1);
+									});
+								}
 								b.style.top = by + "cm";
 								b.style.left = bx + "cm";
-								database.ref(code + "/p1/x").set(bx);
-								database.ref(code + "/p1/y").set(by);
+								if(bx <= sizes.p1.width){
+									bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
+									by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
+									database.ref(code + "/p1/x").set(bx);
+									database.ref(code + "/p1/y").set(by);
+									if(bx > sizes.p1.width)
+										again = true;
+									if(bd > 180)
+										bd -= 360;
+									if(bd < -180)
+										bd += 360;
+									if(by < 0.5 && (bd > 90 || bd < -90) && bx < width + 0.5){
+										bd = 90 + (90 - bd);
+										database.ref(code + "/p1/d").set(bd);
+									}
+									if(by + 0.5 > sizes.p1.height){
+										bd = 90 + (90 - bd);
+										database.ref(code + "/p1/d").set(bd);
+									}
+								}
+/* 								if(again){
+									bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
+									by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
+									database.ref(code + "/p1/x").set(bx);
+									database.ref(code + "/p1/y").set(by);
+									again = false;
+								} */
+								lastTime = e;
 								requestAnimationFrame(updateGame);
 							}
 							requestAnimationFrame(updateGame);
@@ -276,7 +305,7 @@ function right(){
 								e = e.val();
 								sizes.p1 = e.p1;
 								sizes.p2 = e.p2;
-								c.innerHTML = "<div id='leftscreen' style='height: " + e.p1.height + "cm; width: " + e.p1.width + "cm; bottom: " + (e.p1.offset - e.p2.offset) + "cm; left: " + (-e.p1.width) + "cm' class='screen'></div><div id='midscreen' class='screen'></div><div id='ball'></div><div id='gpaddle' style='right: 1cm'></div>";
+								c.innerHTML = "<div id='leftscreen' style='height: " + e.p1.height + "cm; width: " + e.p1.width + "cm; bottom: " + (e.p1.offset - e.p2.offset) + "cm; left: " + (-e.p1.width) + "cm' class='screen'></div><div id='midscreen' class='screen'></div><div id='ball'></div><div id='gpaddle' style='right: 2cm'></div><div id='score' class='header'>0</div>";
 								c.style.opacity = "1";
 							});
 						},500);
@@ -286,30 +315,66 @@ function right(){
 						var b = document.getElementById("ball");
 						database.ref(code + "/p1").on("value", function(e){
 							e = e.val();
-							bx = e.x;
-							by = e.y;
+							if(bx <= sizes.p1.width){
+								bx = e.x;
+								by = e.y;
+							}
+						});
+						database.ref(code + "/p2/score").on("value", function(e){
+							e = e.val();
+							document.getElementById("score").innerHTML = e;
 						});
 						database.ref(code + "/p1/d").on("value", function(e){
 							e = e.val();
 							bd = e;
 						});
 						var paddle = document.getElementById("gpaddle");
-						var my;
+						var my = 0;
 						window.onmousemove = function(e){
 							paddle.style.top = 100 * e.clientY / document.body.clientHeight + "vh";
 							my = e.clientY / cm;
 						}
-						function updateGame(){
-							if(bx + .5 > sizes.p1.width + sizes.p2.width && bd > 0)
-								database.ref(code + "/p1/d").set(-bd);
-							bx += 0.2 * Math.sin(bd / 180 * Math.PI);
-							by += 0.2 * Math.cos(bd / 180 * Math.PI);
+						var again = false;
+						var lastTime = window.performance.now();
+						function updateGame(e){
 							if(overlap(b, paddle) && bd > 0){
-								database.ref(code + "/p1/d").set(-bd - 10 * (my - by));
-								bx = sizes.p1.width + sizes.p1.width - 2;
+								bd = -bd - 10 * (my - by);
+								database.ref(code + "/p1/d").set(bd);
+								bx = sizes.p1.width + sizes.p1.width - 3;
+							}
+							if(bx + .5 > sizes.p1.width + sizes.p2.width && bd > 0){
+								bd *= -1;
+								database.ref(code + "/p1/d").set(bd);
+								database.ref(code + "/p1/score").once("value", function(e){
+									database.ref(code + "/p1/score").set(e.val() + 1);
+								});
 							}
 							b.style.top = (by - (sizes.p1.offset - sizes.p2.offset)) + "cm";
 							b.style.left = (bx - sizes.p1.width) + "cm";
+							if(bx >= sizes.p1.width){
+								bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
+								by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
+								database.ref(code + "/p1/x").set(bx);
+								database.ref(code + "/p1/y").set(by);
+								if(bx < sizes.p1.width)
+									again = true;
+								if(by < (sizes.p1.offset - sizes.p2.offset) + 0.5 && (bd > 90 || bd < -90) && bx > width - 0.5){
+									bd = 90 + (90 - bd);
+									database.ref(code + "/p1/d").set(bd);
+								}
+								if(by + 0.5 > sizes.p2.height + (sizes.p1.offset - sizes.p2.offset)){
+									bd = 90 + (90 - bd);
+									database.ref(code + "/p1/d").set(bd);
+								}
+							}
+/* 							if(again){
+								bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
+								by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
+								database.ref(code + "/p1/x").set(bx);
+								database.ref(code + "/p1/y").set(by);
+								again = false;
+							} */
+							lastTime = e;
 							requestAnimationFrame(updateGame);
 						}
 						requestAnimationFrame(updateGame);
@@ -339,7 +404,7 @@ function start(){
 			e = e.val();
 			sizes.p1 = e.p1;
 			sizes.p2 = e.p2;
-			c.innerHTML = "<div id='midscreen' class='screen'></div><div id='rightscreen' style='height: " + e.p2.height + "cm; width: " + e.p2.width + "cm; bottom: " + (e.p2.offset - e.p1.offset) + "cm' class='screen'></div><div id='ball'></div></div><div id='gpaddle' style='left: 1cm'></div>";
+			c.innerHTML = "<div id='midscreen' class='screen'></div><div id='rightscreen' style='height: " + e.p2.height + "cm; width: " + e.p2.width + "cm; bottom: " + (e.p2.offset - e.p1.offset) + "cm' class='screen'></div><div id='ball'></div></div><div id='gpaddle' style='left: 2cm'></div><div id='score' class='header'>0</div>";
 			c.style.opacity = "1";
 			database.ref(code + "/status").set(4);
 		});
