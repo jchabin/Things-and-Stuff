@@ -176,3 +176,8 @@ input{
 	transition: top .1s;
 	transform: translateY(-10vh);
 }
+#score{
+	position: absolute;
+	top: 1cm;
+	left: 1cm;
+}
