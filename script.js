@@ -146,15 +146,12 @@ function left(){
 								if(bx >= sizes.p1.width){
 									bx = e.x;
 									by = e.y;
+									bd = e.d;
 								}
 							});
 							database.ref(code + "/p1/score").on("value", function(e){
 								e = e.val();
 								document.getElementById("score").innerHTML = e;
-							});
-							database.ref(code + "/p1/d").on("value", function(e){
-								e = e.val();
-								bd = e;
 							});
 							var paddle = document.getElementById("gpaddle");
 							var my = 0;
@@ -181,11 +178,10 @@ function left(){
 										database.ref(code + "/p2/score").set(e.val() + 1);
 									});
 								}
-								b.style.top = by + "cm";
-								b.style.left = bx + "cm";
+								bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
+								by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
+								
 								if(bx <= sizes.p1.width){
-									bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
-									by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
 									database.ref(code + "/p1/x").set(bx);
 									database.ref(code + "/p1/y").set(by);
 									if(bx > sizes.p1.width)
@@ -209,6 +205,9 @@ function left(){
 										database.ref(code + "/p1/d").set(bd);
 									}
 								}
+								
+								b.style.top = by + "cm";
+								b.style.left = bx + "cm";
 /* 								if(again){
 									bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
 									by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
@@ -311,7 +310,7 @@ function right(){
 								e = e.val();
 								sizes.p1 = e.p1;
 								sizes.p2 = e.p2;
-								c.innerHTML = "<div id='leftscreen' style='height: " + e.p1.height + "cm; width: " + e.p1.width + "cm; bottom: " + (e.p1.offset - e.p2.offset) + "cm; left: " + (-e.p1.width) + "cm' class='screen'></div><div id='midscreen' class='screen'></div><div id='ball'></div><div id='gpaddle' style='right: 2cm'></div><div id='score' class='header'>0</div>";
+								c.innerHTML = "<div id='leftscreen' style='height: " + e.p1.height + "cm; width: " + e.p1.width + "cm; bottom: " + (e.p1.offset - e.p2.offset) + "cm; left: " + (-e.p1.width) + "cm' class='screen'></div><div id='midscreen' class='screen'></div><div id='ball'></div><div id='gpaddle' style='right: 2cm'></div><div id='score' class='header' style='left: 1cm'></div>";
 								c.style.opacity = "1";
 							});
 						},500);
@@ -324,15 +323,12 @@ function right(){
 							if(bx <= sizes.p1.width){
 								bx = e.x;
 								by = e.y;
+								bd = e.d;
 							}
 						});
 						database.ref(code + "/p2/score").on("value", function(e){
 							e = e.val();
 							document.getElementById("score").innerHTML = e;
-						});
-						database.ref(code + "/p1/d").on("value", function(e){
-							e = e.val();
-							bd = e;
 						});
 						var paddle = document.getElementById("gpaddle");
 						var my = 0;
@@ -355,11 +351,10 @@ function right(){
 									database.ref(code + "/p1/score").set(e.val() + 1);
 								});
 							}
-							b.style.top = (by - (sizes.p1.offset - sizes.p2.offset)) + "cm";
-							b.style.left = (bx - sizes.p1.width) + "cm";
+							bx += SPEED / 2* (e - lastTime) * Math.sin(bd / 180 * Math.PI);
+							by += SPEED / 2 * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
+							
 							if(bx >= sizes.p1.width){
-								bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
-								by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
 								database.ref(code + "/p1/x").set(bx);
 								database.ref(code + "/p1/y").set(by);
 								if(bx < sizes.p1.width)
@@ -377,6 +372,9 @@ function right(){
 									database.ref(code + "/p1/d").set(bd);
 								}
 							}
+							
+							b.style.top = (by - (sizes.p1.offset - sizes.p2.offset)) + "cm";
+							b.style.left = (bx - sizes.p1.width) + "cm";
 /* 							if(again){
 								bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
 								by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
@@ -414,7 +412,7 @@ function start(){
 			e = e.val();
 			sizes.p1 = e.p1;
 			sizes.p2 = e.p2;
-			c.innerHTML = "<div id='midscreen' class='screen'></div><div id='rightscreen' style='height: " + e.p2.height + "cm; width: " + e.p2.width + "cm; bottom: " + (e.p2.offset - e.p1.offset) + "cm' class='screen'></div><div id='ball'></div></div><div id='gpaddle' style='left: 2cm'></div><div id='score' class='header'>0</div>";
+			c.innerHTML = "<div id='midscreen' class='screen'></div><div id='rightscreen' style='height: " + e.p2.height + "cm; width: " + e.p2.width + "cm; bottom: " + (e.p2.offset - e.p1.offset) + "cm' class='screen'></div><div id='ball'></div></div><div id='gpaddle' style='left: 2cm'></div><div id='score' class='header' style='right: 1cm'></div>";
 			c.style.opacity = "1";
 			database.ref(code + "/status").set(4);
 		});
