@@ -351,8 +351,8 @@ function right(){
 									database.ref(code + "/p1/score").set(e.val() + 1);
 								});
 							}
-							bx += SPEED / 2* (e - lastTime) * Math.sin(bd / 180 * Math.PI);
-							by += SPEED / 2 * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
+							bx += SPEED * (e - lastTime) * Math.sin(bd / 180 * Math.PI);
+							by += SPEED * (e - lastTime) * Math.cos(bd / 180 * Math.PI);
 							
 							if(bx >= sizes.p1.width){
 								database.ref(code + "/p1/x").set(bx);
