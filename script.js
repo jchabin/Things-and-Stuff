@@ -8,7 +8,7 @@ var config = {
 };
 firebase.initializeApp(config);
 
-const SPEED = 0.06;
+const SPEED = 0.04;
 
 var code;
 var database;
